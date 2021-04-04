@@ -8,7 +8,7 @@
         <nuxt />
       </v-container>
     </v-main>
-    <v-footer absolute="false" app>
+    <v-footer :absolute="false" app>
       <v-spacer></v-spacer>
       <a
         class="mr-10"
