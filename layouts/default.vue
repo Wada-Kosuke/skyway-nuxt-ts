@@ -22,9 +22,3 @@
 <script>
 export default {};
 </script>
-
-<style lang="scss" scoped>
-a {
-  color: #fff !important;
-}
-</style>
