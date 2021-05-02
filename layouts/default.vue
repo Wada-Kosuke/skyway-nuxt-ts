@@ -1,8 +1,8 @@
 <template>
   <v-app dark>
-    <!-- <v-app-bar app>
-      <v-toolbar-title v-text="title" />
-    </v-app-bar>-->
+    <v-app-bar app class="pl-4">
+      <nuxt-link to="/">TOP</nuxt-link>
+    </v-app-bar>
     <v-main>
       <v-container>
         <nuxt />
@@ -22,3 +22,9 @@
 <script>
 export default {};
 </script>
+
+<style lang="scss" scoped>
+a {
+  color: #fff !important;
+}
+</style>
