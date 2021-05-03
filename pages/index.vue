@@ -36,7 +36,7 @@ export default Vue.extend({
         },
         {
           text: "ビデオ通話形式（１：１）",
-          url: "/"
+          url: "/video"
         },
         {
           text: "グループ通話形式（ｎ：ｎ）",
