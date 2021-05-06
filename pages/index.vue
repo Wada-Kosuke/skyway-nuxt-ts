@@ -1,17 +1,13 @@
 <template>
-  <v-row justify="center" align="center" class="mt-6">
-    <v-col cols="12" sm="6">
-      <v-list>
-        <v-list-item v-for="item in items" :key="item.title">
-          <v-list-item-content class="flex-column align-start">
-            <nuxt-link :to="item.url">
-              <v-btn class="mr-2 py-5 px-4">{{item.text}}</v-btn>
-            </nuxt-link>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-col>
-  </v-row>
+  <div class="btn-container mt-8">
+    <ul class="list">
+      <li v-for="item in items" :key="item.url" class="item">
+        <nuxt-link :to="item.url">
+          <v-btn class="py-5 px-4">{{item.text}}</v-btn>
+        </nuxt-link>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script lang="ts">
@@ -53,6 +49,30 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+.btn-container {
+  width: 280px;
+  background: #444;
+  padding: 20px;
+  margin: 0 auto;
+
+  > .list {
+    padding: 0;
+
+    > .item {
+      &:not(:first-child) {
+        margin-top: 20px;
+      }
+
+      > a {
+        width: 100%;
+
+        > .v-btn {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
 .v-btn {
   text-transform: none;
 }
