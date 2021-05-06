@@ -27,7 +27,7 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
-    '@/assets/css/destyle.css',
+    '~/assets/css/destyle.css',
     { src: '~/assets/scss/common.scss', lang: 'scss' },
   ],
 
