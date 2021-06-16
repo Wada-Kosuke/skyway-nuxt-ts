@@ -11,6 +11,15 @@ namespace Utils {
     }
     return true;
   }
+
+  export function scrollToBottom() {
+    const element = document.documentElement;
+    const bottom = element.scrollHeight - element.clientHeight;
+    window.scrollTo({
+      top: bottom,
+      behavior: "smooth"
+    });
+  }
 }
 
 export default Utils

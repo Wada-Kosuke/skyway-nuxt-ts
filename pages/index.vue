@@ -40,7 +40,7 @@ export default Vue.extend({
         },
         {
           text: "配信形式（１：ｎ）",
-          url: "/"
+          url: "/stream"
         }
       ]
     };
