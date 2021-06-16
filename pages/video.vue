@@ -21,7 +21,7 @@
       </div>
     </v-col>
     <div v-if="isConnecting" class="video">
-      <video ref="video"></video>
+      <video ref="video" autoplay playsinline></video>
     </div>
   </v-row>
 </template>
@@ -81,7 +81,7 @@ export default Vue.extend({
               const call = this.peer.call(this.otherName, this.localStream);
               call.on("stream", (stream: MediaStream) => {
                 this.playOtherStream(stream);
-                this.scrollToBottom();
+                Utils.scrollToBottom();
               });
             }
           });
@@ -103,7 +103,7 @@ export default Vue.extend({
                 call.on("stream", (stream: MediaStream) => {
                   this.playOtherStream(stream);
                   this.otherName = call.remoteId;
-                  this.scrollToBottom();
+                  Utils.scrollToBottom();
                 });
               });
             }
@@ -120,7 +120,6 @@ export default Vue.extend({
     playOtherStream(stream: MediaStream) {
       const video = this.$refs.video as HTMLMediaElement;
       video.srcObject = stream;
-      video.play();
       this.state = Constants.STATE_CONNECTED;
     },
     disconnect() {
@@ -142,14 +141,6 @@ export default Vue.extend({
           alert("エラーが発生しました。");
         }
         this.disconnect();
-      });
-    },
-    scrollToBottom() {
-      const element = document.documentElement;
-      const bottom = element.scrollHeight - element.clientHeight;
-      window.scrollTo({
-        top: bottom,
-        behavior: "smooth"
       });
     }
   },

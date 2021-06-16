@@ -8,14 +8,14 @@
         <nuxt />
       </v-container>
     </v-main>
-    <v-footer :absolute="false" app>
+    <!-- <v-footer :absolute="false" app>
       <v-spacer></v-spacer>
       <a
         class="mr-10"
         href="https://webrtc.ecl.ntt.com/"
         target="_blank"
       >https://webrtc.ecl.ntt.com/</a>
-    </v-footer>
+    </v-footer>-->
   </v-app>
 </template>
 

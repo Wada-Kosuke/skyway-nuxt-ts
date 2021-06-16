@@ -2,25 +2,28 @@
   <v-row justify="center" align="center" class="mt-12">
     <v-col cols="12" sm="8">
       <div v-if="role === Constants.ROLE_UNSELECT" class="content d-flex justify-center">
-        <v-btn @click="setRole(Constants.ROLE_CALLER)" class="mr-4">通話をかける</v-btn>
-        <v-btn @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
+        <v-btn @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mr-4">配信を開始する</v-btn>
+        <v-btn @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
       <div v-else class="container d-flex flex-column align-center">
         <div class="notice mb-2">半角英数字で入力してください。</div>
         <div class="name mb-4">
-          <div class="head">あなたの名前：</div>
+          <div class="head mr-1">あなたの名前：</div>
           <input v-model="myName" :disabled="isConnecting" type="text" />
         </div>
-        <div v-if="role === Constants.ROLE_CALLER" class="name mb-4">
-          <div class="head">相手の名前：</div>
-          <input v-model="otherName" :disabled="isConnecting" type="text" />
+        <div v-if="role === Constants.ROLE_ROOM_PARTICIPANT" class="name mb-4">
+          <div class="head mr-1">配信者名：</div>
+          <input v-model="streamName" :disabled="isConnecting" type="text" />
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" x-large>接続</v-btn>
+        <v-btn v-if="!isConnecting" @click="connect" x-large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
-        <div v-if="isConnecting" class="state mt-12">{{stateText}}</div>
       </div>
     </v-col>
-    <audio ref="audio" autoplay></audio>
+    <div class="main">
+      <div v-if="isConnecting" class="video">
+        <video ref="video" autoplay playsinline></video>
+      </div>
+    </div>
   </v-row>
 </template>
 
@@ -34,11 +37,11 @@ type Data = {
   Constants: object;
   role: number;
   myName: string;
-  otherName: string;
+  streamName: string;
   state: number;
-  stateText: string;
   isConnecting: boolean;
   peer: Peer | null;
+  room: object | null;
   localStream: MediaStream | undefined;
 };
 
@@ -48,11 +51,11 @@ export default Vue.extend({
       Constants: Constants,
       role: Constants.ROLE_UNSELECT,
       myName: "",
-      otherName: "",
+      streamName: "",
       state: Constants.STATE_DISCONNECTED,
-      stateText: "待機中…",
       isConnecting: false,
       peer: null,
+      room: null,
       localStream: undefined
     };
   },
@@ -61,61 +64,67 @@ export default Vue.extend({
       this.role = role;
     },
     async connect() {
-      if (this.role == Constants.ROLE_CALLER) {
-        // 発信側
-        if (
-          Utils.checkName(this.myName, "自分の名前") &&
-          Utils.checkName(this.otherName, "相手の名前")
-        ) {
-          this.isConnecting = true;
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.checkPeer(this.peer);
-          this.peer.on("open", async () => {
-            if (this.peer) {
-              await this.setMyStream();
-              const call = this.peer.call(this.otherName, this.localStream);
-              call.on("stream", (stream: MediaStream) => {
-                this.playOtherStream(stream);
-              });
-            }
-          });
-        }
-      } else if (this.role == Constants.ROLE_RECEIVER) {
-        // 着信側
+      if (this.role == Constants.ROLE_ROOM_CREATER) {
+        // 配信者側
         if (Utils.checkName(this.myName, "自分の名前")) {
           this.isConnecting = true;
           this.peer = new Peer(this.myName, {
             key: this.$config.SKYWAY_API_KEY,
             debug: 3
           });
-          this.checkPeer(this.peer);
           this.peer.on("open", async () => {
             await this.setMyStream();
-            if (this.peer) {
-              this.peer.on("call", (call: MediaConnection) => {
-                call.answer(this.localStream);
-                call.on("stream", (stream: MediaStream) => {
-                  this.playOtherStream(stream);
-                  this.otherName = call.remoteId;
-                });
-              });
-            }
+            await this.playMyStream();
+            this.joinRoom(this.myName);
+            Utils.scrollToBottom();
+          });
+        }
+      } else if (this.role == Constants.ROLE_ROOM_PARTICIPANT) {
+        // 参加者側
+        if (Utils.checkName(this.myName, "自分の名前")) {
+          this.isConnecting = true;
+          this.peer = new Peer(this.myName, {
+            key: this.$config.SKYWAY_API_KEY,
+            debug: 3
+          });
+          this.peer.on("open", () => {
+            this.joinRoom(this.streamName);
+            this.playOtherStream(this.room);
           });
         }
       }
     },
     async setMyStream() {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      });
+      this.localStream = stream;
+    },
+    playMyStream: async function() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+      });
+      const video = this.$refs.video as HTMLMediaElement;
+      video.srcObject = stream;
+      this.localStream = stream;
+    },
+    playOtherStream(src: any) {
+      src.on("stream", (stream: any) => {
+        // TODO
+        const video = this.$refs.video as HTMLMediaElement;
+        video.srcObject = stream;
+        this.state = Constants.STATE_CONNECTED;
       });
     },
-    playOtherStream(stream: MediaStream) {
-      const audio = this.$refs.audio as HTMLMediaElement;
-      audio.srcObject = stream;
-      this.state = Constants.STATE_CONNECTED;
+    joinRoom: function(roomName: string) {
+      if (this.peer) {
+        this.room = this.peer.joinRoom(roomName, {
+          mode: "sfu",
+          stream: this.localStream
+        });
+      }
     },
     disconnect() {
       if (this.peer) this.peer.destroy();
@@ -137,19 +146,14 @@ export default Vue.extend({
         }
         this.disconnect();
       });
-    }
-  },
-  watch: {
-    state() {
-      if (this.state === Constants.STATE_DISCONNECTED) {
-        this.stateText = "待機中…";
-      } else if (this.state === Constants.STATE_CONNECTED) {
-        if (this.role === Constants.ROLE_CALLER) {
-          this.stateText = "接続中";
-        } else if (this.role === Constants.ROLE_RECEIVER) {
-          this.stateText = `${this.otherName}と接続中`;
-        }
-      }
+    },
+    scrollToBottom() {
+      const element = document.documentElement;
+      const bottom = element.scrollHeight - element.clientHeight;
+      window.scrollTo({
+        top: bottom,
+        behavior: "smooth"
+      });
     }
   },
   beforeDestroy() {
@@ -171,6 +175,21 @@ export default Vue.extend({
 
   > .head {
     min-width: 114px;
+    text-align: right;
   }
+}
+
+.video {
+  width: 80%;
+  max-width: 80%;
+  margin: 0 auto 10px;
+
+  > video {
+    width: 100%;
+  }
+}
+
+button {
+  width: 140px;
 }
 </style>
