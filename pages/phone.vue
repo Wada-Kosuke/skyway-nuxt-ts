@@ -1,27 +1,34 @@
 <template>
-  <v-row justify="center" align="center" class="mt-12">
-    <v-col cols="12" sm="8">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="content d-flex justify-center">
+  <div class="wrapper">
+    <div class="main">
+      <div v-if="role === Constants.ROLE_UNSELECT" class="d-flex justify-center">
         <v-btn @click="setRole(Constants.ROLE_CALLER)" class="mr-4">通話をかける</v-btn>
         <v-btn @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
       </div>
-      <div v-else class="container d-flex flex-column align-center">
-        <div class="notice mb-2">半角英数字で入力してください。</div>
-        <div class="name mb-4">
+      <div v-else class="d-flex flex-column align-center">
+        <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
+        <div class="name d-flex justify-center align-center mb-4">
           <div class="head">あなたの名前：</div>
-          <input v-model="myName" :disabled="isConnecting" type="text" />
+          <div class="input">
+            <input v-model="myName" :disabled="isConnecting" type="text" />
+          </div>
         </div>
-        <div v-if="role === Constants.ROLE_CALLER" class="name mb-4">
+        <div
+          v-if="role === Constants.ROLE_CALLER"
+          class="name d-flex justify-center align-center mb-4"
+        >
           <div class="head">相手の名前：</div>
-          <input v-model="otherName" :disabled="isConnecting" type="text" />
+          <div class="input">
+            <input v-model="otherName" :disabled="isConnecting" type="text" />
+          </div>
         </div>
         <v-btn v-if="!isConnecting" @click="connect" x-large>接続</v-btn>
         <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
         <div v-if="isConnecting" class="state mt-12">{{stateText}}</div>
       </div>
-    </v-col>
-    <audio ref="audio" autoplay></audio>
-  </v-row>
+      <audio ref="audio" autoplay></audio>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -157,20 +164,3 @@ export default Vue.extend({
   }
 });
 </script>
-
-<style lang="scss" scoped>
-.notice {
-  font-size: 14px;
-  opacity: 0.6;
-}
-
-.name {
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  > .head {
-    min-width: 114px;
-  }
-}
-</style>
