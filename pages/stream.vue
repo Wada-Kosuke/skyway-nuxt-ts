@@ -1,30 +1,37 @@
 <template>
-  <v-row justify="center" align="center" class="mt-12">
-    <v-col cols="12" sm="8">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="content d-flex justify-center">
+  <div class="wrapper">
+    <div class="main">
+      <div v-if="role === Constants.ROLE_UNSELECT" class="d-flex justify-center">
         <v-btn @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mr-4">配信を開始する</v-btn>
         <v-btn @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
-      <div v-else class="container d-flex flex-column align-center">
-        <div class="notice mb-2">半角英数字で入力してください。</div>
-        <div class="name mb-4">
+      <div v-else class="d-flex flex-column align-center mb-4">
+        <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
+        <div class="name d-flex justify-center align-center mb-4">
           <div class="head mr-1">あなたの名前：</div>
-          <input v-model="myName" :disabled="isConnecting" type="text" />
+          <div class="input">
+            <input v-model="myName" :disabled="isConnecting" type="text" />
+          </div>
         </div>
-        <div v-if="role === Constants.ROLE_ROOM_PARTICIPANT" class="name mb-4">
+        <div
+          v-if="role === Constants.ROLE_ROOM_PARTICIPANT"
+          class="name d-flex justify-center align-center mb-4"
+        >
           <div class="head mr-1">配信者名：</div>
-          <input v-model="streamName" :disabled="isConnecting" type="text" />
+          <div class="input">
+            <input v-model="streamName" :disabled="isConnecting" type="text" />
+          </div>
         </div>
         <v-btn v-if="!isConnecting" @click="connect" x-large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
       </div>
-    </v-col>
-    <div class="main">
-      <div v-if="isConnecting" class="video">
-        <video ref="video" autoplay playsinline></video>
+      <div class="content">
+        <div v-if="isConnecting" class="video">
+          <video ref="video" autoplay playsinline></video>
+        </div>
       </div>
     </div>
-  </v-row>
+  </div>
 </template>
 
 <script lang="ts">
@@ -163,33 +170,4 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.notice {
-  font-size: 14px;
-  opacity: 0.6;
-}
-
-.name {
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  > .head {
-    min-width: 114px;
-    text-align: right;
-  }
-}
-
-.video {
-  width: 80%;
-  max-width: 80%;
-  margin: 0 auto 10px;
-
-  > video {
-    width: 100%;
-  }
-}
-
-button {
-  width: 140px;
-}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="btn-container mt-8">
+  <div class="container mt-8">
     <ul class="list">
       <li v-for="item in items" :key="item.url" class="item">
         <nuxt-link :to="item.url">
@@ -49,7 +49,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.btn-container {
+.container {
   width: 280px;
   background: #444;
   padding: 20px;

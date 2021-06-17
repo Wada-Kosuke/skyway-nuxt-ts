@@ -1,13 +1,7 @@
 <template>
   <v-app dark>
-    <v-app-bar app class="pl-4">
-      <nuxt-link to="/">TOP</nuxt-link>
-    </v-app-bar>
-    <v-main>
-      <v-container>
-        <nuxt />
-      </v-container>
-    </v-main>
+    <nuxt-link to="/" class="ml-12 my-6">TOP</nuxt-link>
+    <nuxt />
     <!-- <v-footer :absolute="false" app>
       <v-spacer></v-spacer>
       <a
@@ -18,7 +12,3 @@
     </v-footer>-->
   </v-app>
 </template>
-
-<script>
-export default {};
-</script>
