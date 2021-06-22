@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper">
     <div class="main">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="d-flex justify-center">
-        <v-btn @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mr-4">配信を開始する</v-btn>
+      <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
+        <v-btn @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
         <v-btn @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center mb-4">
@@ -25,11 +25,11 @@
         <v-btn v-if="!isConnecting" @click="connect" x-large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
       </div>
-      <div class="content d-flex mb-6">
+      <div v-if="isConnecting" class="content d-flex mb-6">
         <div class="video">
           <video ref="video" autoplay playsinline></video>
         </div>
-        <div v-if="isConnecting" class="comment-area ml-4">
+        <div class="comment-area ml-4">
           <div class="head px-5 py-3">
             コメント
             <span class="arrow">▼</span>
@@ -112,8 +112,8 @@ export default Vue.extend({
             debug: 3
           });
           this.peer.on("open", async () => {
-            await this.setMyStream();
             this.isConnecting = true;
+            await this.setMyStream();
             this.joinRoom(this.myName);
             this.onReceiveComment();
           });
