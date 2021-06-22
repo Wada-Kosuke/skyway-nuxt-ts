@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper">
     <div class="main">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="d-flex justify-center">
-        <v-btn @click="setRole(Constants.ROLE_CALLER)" class="mr-4">通話をかける</v-btn>
+      <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
+        <v-btn @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
         <v-btn @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center">
