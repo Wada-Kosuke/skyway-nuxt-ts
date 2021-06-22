@@ -1,24 +1,25 @@
+// コンテンツ最大幅
 .wrapper {
   max-width: 1000px;
   margin: 0 auto;
-}
-
-.input {
-  min-width: 360px;
-
-  input[type="text"] {
-    border: 1px solid gray;
-    width: 100%;
-    padding: 10px;
-    background: #e0e0e0;
-    color: #333;
-  }
 }
 
 .name {
   > .head {
     min-width: 114px;
     text-align: right;
+  }
+
+  > .input {
+    min-width: 360px;
+
+    input[type="text"] {
+      border: 1px solid gray;
+      width: 100%;
+      padding: 10px;
+      background: #e0e0e0;
+      color: #333;
+    }
   }
 }
 
@@ -32,6 +33,11 @@
   }
 }
 
+// 各要素共通
 a {
   color: #fff !important;
+}
+
+input {
+  width: 100%;
 }
