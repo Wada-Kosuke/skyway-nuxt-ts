@@ -25,9 +25,38 @@
         <v-btn v-if="!isConnecting" @click="connect" x-large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
       </div>
-      <div class="content">
-        <div v-if="isConnecting" class="video">
+      <div class="content d-flex mb-6">
+        <div class="video">
           <video ref="video" autoplay playsinline></video>
+        </div>
+        <div v-if="isConnecting" class="comment-area ml-4">
+          <div class="head px-5 py-3">
+            コメント
+            <span class="arrow">▼</span>
+          </div>
+          <ul class="comment-list">
+            <li
+              class="comment py-1"
+              v-for="comment in comments"
+              :class="{ _mine: comment.isMine }"
+              :key="comment.content"
+            >
+              <span class="name mr-2">{{ comment.name }}</span>
+              <span class="content">{{ comment.content }}</span>
+            </li>
+          </ul>
+          <div class="comment-form d-flex py-2">
+            <div class="input d-flex align-center px-2">
+              <input
+                v-model="comment"
+                type="text"
+                placeholder="コメントを送信"
+                maxlength="100"
+                @keypress.enter="sendComment"
+              />
+            </div>
+            <button class="send-btn py-1 mr-2" @click="sendComment">送信</button>
+          </div>
         </div>
       </div>
     </div>
@@ -38,7 +67,7 @@
 import Vue from "vue";
 import Constants from "~/plugins/constants";
 import Utils from "~/plugins/utils";
-import Peer, { MediaConnection } from "skyway-js";
+import Peer, { MediaConnection, RoomData } from "skyway-js";
 
 type Data = {
   Constants: object;
@@ -48,8 +77,10 @@ type Data = {
   state: number;
   isConnecting: boolean;
   peer: Peer | null;
-  room: object | null;
+  room: any;
   localStream: MediaStream | undefined;
+  comment: string;
+  comments: object[];
 };
 
 export default Vue.extend({
@@ -63,7 +94,9 @@ export default Vue.extend({
       isConnecting: false,
       peer: null,
       room: null,
-      localStream: undefined
+      localStream: undefined,
+      comment: "",
+      comments: []
     };
   },
   methods: {
@@ -74,16 +107,15 @@ export default Vue.extend({
       if (this.role == Constants.ROLE_ROOM_CREATER) {
         // 配信者側
         if (Utils.checkName(this.myName, "自分の名前")) {
-          this.isConnecting = true;
           this.peer = new Peer(this.myName, {
             key: this.$config.SKYWAY_API_KEY,
             debug: 3
           });
           this.peer.on("open", async () => {
             await this.setMyStream();
-            await this.playMyStream();
+            this.isConnecting = true;
             this.joinRoom(this.myName);
-            Utils.scrollToBottom();
+            this.onReceiveComment();
           });
         }
       } else if (this.role == Constants.ROLE_ROOM_PARTICIPANT) {
@@ -101,14 +133,7 @@ export default Vue.extend({
         }
       }
     },
-    async setMyStream() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true
-      });
-      this.localStream = stream;
-    },
-    playMyStream: async function() {
+    setMyStream: async function() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true
@@ -123,6 +148,7 @@ export default Vue.extend({
         const video = this.$refs.video as HTMLMediaElement;
         video.srcObject = stream;
         this.state = Constants.STATE_CONNECTED;
+        this.onReceiveComment();
       });
     },
     joinRoom: function(roomName: string) {
@@ -161,6 +187,27 @@ export default Vue.extend({
         top: bottom,
         behavior: "smooth"
       });
+    },
+    sendComment() {
+      if (!this.comment) return;
+      this.room.send(this.comment);
+      const comment = {
+        isMine: true,
+        name: this.myName,
+        content: this.comment
+      };
+      this.comments.push(comment);
+      this.comment = "";
+    },
+    onReceiveComment() {
+      this.room.on("data", ({ src, data }: RoomData) => {
+        const comment = {
+          isMine: false,
+          name: src,
+          content: data
+        };
+        this.comments.push(comment);
+      });
     }
   },
   beforeDestroy() {
@@ -170,4 +217,59 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+.comment-area {
+  min-width: 340px;
+  max-width: 340px;
+  border: 1px solid $color-gray3;
+
+  > .head {
+    border-bottom: 1px solid $color-gray3;
+    background: $color-gray1;
+
+    > .arrow {
+      vertical-align: middle;
+      font-size: 10px;
+    }
+  }
+
+  > .comment-list {
+    min-height: 340px;
+    max-height: 340px;
+    overflow-y: auto;
+
+    > .comment {
+      > .name {
+        color: $color-gray4;
+      }
+
+      &._mine {
+        > .name {
+          color: orange;
+        }
+      }
+    }
+  }
+
+  > .comment-form {
+    width: 100%;
+    border-top: 1px solid $color-gray3;
+    background: $color-gray1;
+
+    > .input {
+      width: 100%;
+    }
+
+    > .send-btn {
+      min-width: 50px;
+      text-align: center;
+      color: $color-gray4;
+      border: 1px solid $color-gray3;
+      border-radius: 4px;
+      background: $color-gray1;
+      &:hover {
+        filter: contrast(0.9);
+      }
+    }
+  }
+}
 </style>
