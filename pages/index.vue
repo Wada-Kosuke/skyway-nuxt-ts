@@ -1,9 +1,9 @@
 <template>
-  <div class="container">
+  <div class="container mt-12">
     <ul class="list d-flex flex-column justify-center">
       <li v-for="item in items" :key="item.url" class="my-3 item">
         <nuxt-link :to="item.url">
-          <v-btn class="py-5 px-4">{{item.text}}</v-btn>
+          <v-btn x-large>{{item.text}}</v-btn>
         </nuxt-link>
       </li>
     </ul>
@@ -27,19 +27,19 @@ export default Vue.extend({
     return {
       items: [
         {
-          text: "通話形式",
+          text: "音声通話",
           url: "/phone"
         },
         {
-          text: "ビデオ通話形式",
+          text: "ビデオ通話",
           url: "/video"
         },
         {
-          text: "グループ通話形式",
+          text: "グループ通話",
           url: "/"
         },
         {
-          text: "配信形式",
+          text: "配信",
           url: "/stream"
         }
       ]
@@ -50,7 +50,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .container {
-  width: 210px;
+  width: 220px;
   margin: 0 auto;
 }
 

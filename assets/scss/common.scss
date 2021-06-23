@@ -24,9 +24,9 @@
   }
 }
 
+// videoタグ最大幅
 .video {
-  width: 80%;
-  max-width: 80%;
+  width: 740px;
   margin: 0 auto 10px;
 
   > video {
@@ -34,7 +34,7 @@
   }
 }
 
-// 各要素共通
+// 各要素
 a {
   color: #fff !important;
 }
