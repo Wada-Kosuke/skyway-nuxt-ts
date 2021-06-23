@@ -2,8 +2,8 @@
   <div class="wrapper">
     <div class="main">
       <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
-        <v-btn @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
-        <v-btn @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
+        <v-btn x-large @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
+        <v-btn x-large @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
@@ -22,13 +22,14 @@
             <input v-model="otherName" :disabled="isConnecting" type="text" />
           </div>
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" x-large>接続</v-btn>
-        <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
-        <div v-if="isConnecting" class="state mt-12">{{stateText}}</div>
+        <v-btn v-if="!isConnecting" @click="connect" large>接続</v-btn>
+        <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
+        <div v-if="isConnecting" class="state mt-6 mb-3">{{stateText}}</div>
       </div>
     </div>
     <div v-if="isConnecting" class="video">
-      <video ref="video" autoplay playsinline></video>
+      <video ref="otherVideo" class="other-video" autoplay></video>
+      <video ref="myVideo" class="my-video" autoplay></video>
     </div>
   </div>
 </template>
@@ -76,7 +77,6 @@ export default Vue.extend({
           Utils.checkName(this.myName, "自分の名前") &&
           Utils.checkName(this.otherName, "相手の名前")
         ) {
-          this.isConnecting = true;
           this.peer = new Peer(this.myName, {
             key: this.$config.SKYWAY_API_KEY,
             debug: 3
@@ -84,6 +84,7 @@ export default Vue.extend({
           this.checkPeer(this.peer);
           this.peer.on("open", async () => {
             if (this.peer) {
+              this.isConnecting = true;
               await this.setMyStream();
               const call = this.peer.call(this.otherName, this.localStream);
               call.on("stream", (stream: MediaStream) => {
@@ -96,13 +97,13 @@ export default Vue.extend({
       } else if (this.role == Constants.ROLE_RECEIVER) {
         // 着信側
         if (Utils.checkName(this.myName, "自分の名前")) {
-          this.isConnecting = true;
           this.peer = new Peer(this.myName, {
             key: this.$config.SKYWAY_API_KEY,
             debug: 3
           });
           this.checkPeer(this.peer);
           this.peer.on("open", async () => {
+            this.isConnecting = true;
             await this.setMyStream();
             if (this.peer) {
               this.peer.on("call", (call: MediaConnection) => {
@@ -119,13 +120,16 @@ export default Vue.extend({
       }
     },
     async setMyStream() {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true
       });
+      const myVideo = this.$refs.myVideo as HTMLMediaElement;
+      myVideo.srcObject = stream;
+      this.localStream = stream;
     },
     playOtherStream(stream: MediaStream) {
-      const video = this.$refs.video as HTMLMediaElement;
+      const video = this.$refs.otherVideo as HTMLMediaElement;
       video.srcObject = stream;
       this.state = Constants.STATE_CONNECTED;
     },
@@ -169,3 +173,16 @@ export default Vue.extend({
   }
 });
 </script>
+
+<style lang="scss" scoped>
+.video {
+  position: relative;
+
+  > .my-video {
+    width: 200px;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
+</style>

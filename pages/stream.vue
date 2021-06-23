@@ -2,8 +2,8 @@
   <div class="wrapper">
     <div class="main">
       <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
-        <v-btn @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
-        <v-btn @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
+        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
+        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
@@ -22,8 +22,8 @@
             <input v-model="streamName" :disabled="isConnecting" type="text" />
           </div>
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" x-large>開始</v-btn>
-        <v-btn v-else outlined @click="disconnect" x-large>切断</v-btn>
+        <v-btn v-if="!isConnecting" @click="connect" large>開始</v-btn>
+        <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
       </div>
       <div v-if="isConnecting" class="content d-flex mb-6">
         <div class="video">
