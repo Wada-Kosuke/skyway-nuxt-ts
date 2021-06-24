@@ -7,7 +7,7 @@
 // 名前入力
 .name {
   > .head {
-    min-width: 120px;
+    min-width: 142px;
     text-align: right;
   }
 
@@ -25,13 +25,16 @@
 }
 
 // videoタグ最大幅
-.video {
-  width: 740px;
-  margin: 0 auto 10px;
+// .video {
+//   width: 740px;
+//   margin: 0 auto 10px;
 
-  > video {
-    width: 100%;
-  }
+//   > video {
+//     width: 100%;
+//   }
+// }
+video {
+  width: 100%;
 }
 
 // 各要素
