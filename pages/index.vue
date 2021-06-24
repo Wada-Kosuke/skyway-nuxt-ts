@@ -36,7 +36,7 @@ export default Vue.extend({
         },
         {
           text: "グループ通話",
-          url: "/"
+          url: "/group"
         },
         {
           text: "配信",

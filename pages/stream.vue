@@ -180,14 +180,6 @@ export default Vue.extend({
         this.disconnect();
       });
     },
-    scrollToBottom() {
-      const element = document.documentElement;
-      const bottom = element.scrollHeight - element.clientHeight;
-      window.scrollTo({
-        top: bottom,
-        behavior: "smooth"
-      });
-    },
     sendComment() {
       if (!this.comment) return;
       this.room.send(this.comment);

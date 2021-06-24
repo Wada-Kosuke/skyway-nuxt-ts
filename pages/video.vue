@@ -28,8 +28,8 @@
       </div>
     </div>
     <div v-if="isConnecting" class="video">
-      <video ref="otherVideo" class="other-video" autoplay></video>
-      <video ref="myVideo" class="my-video" autoplay></video>
+      <video ref="otherVideo" class="other-video" autoplay playsinline></video>
+      <video ref="myVideo" class="my-video" autoplay playsinline></video>
     </div>
   </div>
 </template>
@@ -89,7 +89,9 @@ export default Vue.extend({
               const call = this.peer.call(this.otherName, this.localStream);
               call.on("stream", (stream: MediaStream) => {
                 this.playOtherStream(stream);
-                Utils.scrollToBottom();
+                setTimeout(() => {
+                  Utils.scrollToBottom();
+                }, 500);
               });
             }
           });
@@ -111,7 +113,9 @@ export default Vue.extend({
                 call.on("stream", (stream: MediaStream) => {
                   this.playOtherStream(stream);
                   this.otherName = call.remoteId;
-                  Utils.scrollToBottom();
+                  setTimeout(() => {
+                    Utils.scrollToBottom();
+                  }, 500);
                 });
               });
             }
@@ -177,6 +181,9 @@ export default Vue.extend({
 <style lang="scss" scoped>
 .video {
   position: relative;
+  width: 800px;
+  max-width: 90vw;
+  margin: 0 auto 40px;
 
   > .my-video {
     width: 200px;
