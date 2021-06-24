@@ -1,7 +1,10 @@
 <template>
   <div class="wrapper">
     <div class="main">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
+      <div
+        v-if="role === Constants.ROLE_UNSELECT"
+        class="select-role mt-12 d-flex flex-column justify-center"
+      >
         <v-btn x-large @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
         <v-btn x-large @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
       </div>
@@ -71,57 +74,34 @@ export default Vue.extend({
       this.role = role;
     },
     async connect() {
-      if (this.role == Constants.ROLE_CALLER) {
-        // 発信側
-        if (
-          Utils.checkName(this.myName, "自分の名前") &&
-          Utils.checkName(this.otherName, "相手の名前")
-        ) {
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.checkPeer(this.peer);
-          this.peer.on("open", async () => {
-            if (this.peer) {
-              this.isConnecting = true;
-              await this.setMyStream();
-              const call = this.peer.call(this.otherName, this.localStream);
-              call.on("stream", (stream: MediaStream) => {
-                this.playOtherStream(stream);
-                setTimeout(() => {
-                  Utils.scrollToBottom();
-                }, 500);
-              });
-            }
-          });
-        }
-      } else if (this.role == Constants.ROLE_RECEIVER) {
-        // 着信側
-        if (Utils.checkName(this.myName, "自分の名前")) {
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.checkPeer(this.peer);
-          this.peer.on("open", async () => {
-            this.isConnecting = true;
-            await this.setMyStream();
-            if (this.peer) {
-              this.peer.on("call", (call: MediaConnection) => {
-                call.answer(this.localStream);
-                call.on("stream", (stream: MediaStream) => {
-                  this.playOtherStream(stream);
-                  this.otherName = call.remoteId;
-                  setTimeout(() => {
-                    Utils.scrollToBottom();
-                  }, 500);
-                });
-              });
-            }
-          });
-        }
+      // 有効な名前かチェック
+      if (!Utils.checkName(this.myName, "自分の名前")) return;
+      if (this.role === Constants.ROLE_CALLER) {
+        if (!Utils.checkName(this.otherName, "相手の名前")) return;
       }
+      // SkyWayサーバーに接続
+      this.peer = new Peer(this.myName, {
+        key: this.$config.SKYWAY_API_KEY,
+        debug: 3
+      });
+      this.isConnecting = true;
+      Utils.checkPeer(this.peer, this.disconnect);
+      this.peer.on("open", async () => {
+        if (this.peer) {
+          await this.setMyStream();
+          if (this.role === Constants.ROLE_CALLER) {
+            // 発信側
+            const call = this.peer.call(this.otherName, this.localStream);
+            this.onStream(call);
+          } else if (this.role === Constants.ROLE_RECEIVER) {
+            // 着信側
+            this.peer.on("call", (call: MediaConnection) => {
+              call.answer(this.localStream);
+              this.onStream(call);
+            });
+          }
+        }
+      });
     },
     async setMyStream() {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -131,6 +111,16 @@ export default Vue.extend({
       const myVideo = this.$refs.myVideo as HTMLMediaElement;
       myVideo.srcObject = stream;
       this.localStream = stream;
+    },
+    onStream(call: MediaConnection) {
+      call.on("stream", (stream: MediaStream) => {
+        this.playOtherStream(stream);
+        if (this.role === Constants.ROLE_RECEIVER)
+          this.otherName = call.remoteId;
+        setTimeout(() => {
+          Utils.scrollToBottom();
+        }, 500);
+      });
     },
     playOtherStream(stream: MediaStream) {
       const video = this.$refs.otherVideo as HTMLMediaElement;
@@ -147,16 +137,6 @@ export default Vue.extend({
       }
       this.isConnecting = false;
       this.state = Constants.STATE_DISCONNECTED;
-    },
-    checkPeer(peer: Peer) {
-      peer.on("error", (error: ErrorEvent) => {
-        if (error.type === "unavailable-id") {
-          alert("現在その名前は既に使われています。");
-        } else {
-          alert("エラーが発生しました。");
-        }
-        this.disconnect();
-      });
     }
   },
   watch: {

@@ -4,6 +4,12 @@
   margin: 0 auto;
 }
 
+// 立場選択
+.select-role {
+  width: 200px;
+  margin: 0 auto;
+}
+
 // 名前入力
 .name {
   > .head {
@@ -24,24 +30,15 @@
   }
 }
 
-// videoタグ最大幅
-// .video {
-//   width: 740px;
-//   margin: 0 auto 10px;
-
-//   > video {
-//     width: 100%;
-//   }
-// }
-video {
-  width: 100%;
-}
-
 // 各要素
 a {
   color: #fff !important;
 }
 
 input {
+  width: 100%;
+}
+
+video {
   width: 100%;
 }

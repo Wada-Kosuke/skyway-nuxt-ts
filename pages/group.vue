@@ -171,11 +171,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.select-role {
-  width: 200px;
-  margin: 0 auto;
-}
-
 .videos {
   width: 100%;
   > .video {
