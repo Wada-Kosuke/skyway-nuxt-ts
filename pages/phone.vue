@@ -67,56 +67,46 @@ export default Vue.extend({
     setRole(role: number) {
       this.role = role;
     },
-    async connect() {
-      if (this.role == Constants.ROLE_CALLER) {
-        // 発信側
-        if (
-          Utils.checkName(this.myName, "自分の名前") &&
-          Utils.checkName(this.otherName, "相手の名前")
-        ) {
-          this.isConnecting = true;
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.checkPeer(this.peer);
-          this.peer.on("open", async () => {
-            if (this.peer) {
-              await this.setMyStream();
-              const call = this.peer.call(this.otherName, this.localStream);
-              call.on("stream", (stream: MediaStream) => {
-                this.playOtherStream(stream);
-              });
-            }
-          });
-        }
-      } else if (this.role == Constants.ROLE_RECEIVER) {
-        // 着信側
-        if (Utils.checkName(this.myName, "自分の名前")) {
-          this.isConnecting = true;
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.checkPeer(this.peer);
-          this.peer.on("open", async () => {
-            await this.setMyStream();
-            if (this.peer) {
-              this.peer.on("call", (call: MediaConnection) => {
-                call.answer(this.localStream);
-                call.on("stream", (stream: MediaStream) => {
-                  this.playOtherStream(stream);
-                  this.otherName = call.remoteId;
-                });
-              });
-            }
-          });
-        }
+    connect() {
+      // 有効な名前かチェック
+      if (!Utils.checkName(this.myName, "自分の名前")) return;
+      if (this.role === Constants.ROLE_CALLER) {
+        if (!Utils.checkName(this.otherName, "相手の名前")) return;
       }
+      // SkyWayサーバーに接続
+      this.peer = new Peer(this.myName, {
+        key: this.$config.SKYWAY_API_KEY,
+        debug: 3
+      });
+      this.isConnecting = true;
+      Utils.checkPeer(this.peer, this.disconnect);
+      this.peer.on("open", async () => {
+        if (this.peer) {
+          await this.setMyStream();
+          if (this.role === Constants.ROLE_CALLER) {
+            // 発信側
+            const call = this.peer.call(this.otherName, this.localStream);
+            this.onStream(call);
+          } else if (this.role === Constants.ROLE_RECEIVER) {
+            // 着信側
+            this.peer.on("call", (call: MediaConnection) => {
+              call.answer(this.localStream);
+              this.onStream(call);
+            });
+          }
+        }
+      });
     },
     async setMyStream() {
       this.localStream = await navigator.mediaDevices.getUserMedia({
         audio: true
+      });
+    },
+    onStream(call: MediaConnection) {
+      call.on("stream", (stream: MediaStream) => {
+        this.playOtherStream(stream);
+        if (this.role === Constants.ROLE_RECEIVER)
+          this.otherName = call.remoteId;
       });
     },
     playOtherStream(stream: MediaStream) {
@@ -134,16 +124,6 @@ export default Vue.extend({
       }
       this.isConnecting = false;
       this.state = Constants.STATE_DISCONNECTED;
-    },
-    checkPeer(peer: Peer) {
-      peer.on("error", (error: ErrorEvent) => {
-        if (error.type === "unavailable-id") {
-          alert("現在その名前は既に使われています。");
-        } else {
-          alert("エラーが発生しました。");
-        }
-        this.disconnect();
-      });
     }
   },
   watch: {

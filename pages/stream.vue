@@ -67,7 +67,12 @@
 import Vue from "vue";
 import Constants from "~/plugins/constants";
 import Utils from "~/plugins/utils";
-import Peer, { MediaConnection, RoomData } from "skyway-js";
+import Peer, {
+  MediaConnection,
+  RoomData,
+  SfuRoom,
+  RoomStream
+} from "skyway-js";
 
 type Data = {
   Constants: object;
@@ -77,7 +82,7 @@ type Data = {
   state: number;
   isConnecting: boolean;
   peer: Peer | null;
-  room: any;
+  room: SfuRoom | null;
   localStream: MediaStream | undefined;
   comment: string;
   comments: object[];
@@ -104,34 +109,25 @@ export default Vue.extend({
       this.role = role;
     },
     async connect() {
-      if (this.role == Constants.ROLE_ROOM_CREATER) {
-        // 配信者側
-        if (Utils.checkName(this.myName, "自分の名前")) {
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.peer.on("open", async () => {
-            this.isConnecting = true;
-            await this.setMyStream();
-            this.joinRoom(this.myName);
-            this.onReceiveComment();
-          });
+      if (!Utils.checkName(this.myName, "自分の名前")) return;
+      this.peer = new Peer(this.myName, {
+        key: this.$config.SKYWAY_API_KEY,
+        debug: 3
+      });
+      this.isConnecting = true;
+      Utils.checkPeer(this.peer, this.disconnect);
+      this.peer.on("open", async () => {
+        if (this.role === Constants.ROLE_ROOM_CREATER) {
+          // 配信者側
+          await this.setMyStream();
+          this.joinRoom(this.myName);
+          this.onReceiveComment();
+        } else if (this.role === Constants.ROLE_ROOM_PARTICIPANT) {
+          // 参加者側
+          this.joinRoom(this.streamName);
+          if (this.room) this.playOtherStream(this.room);
         }
-      } else if (this.role == Constants.ROLE_ROOM_PARTICIPANT) {
-        // 参加者側
-        if (Utils.checkName(this.myName, "自分の名前")) {
-          this.isConnecting = true;
-          this.peer = new Peer(this.myName, {
-            key: this.$config.SKYWAY_API_KEY,
-            debug: 3
-          });
-          this.peer.on("open", () => {
-            this.joinRoom(this.streamName);
-            this.playOtherStream(this.room);
-          });
-        }
-      }
+      });
     },
     setMyStream: async function() {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -142,9 +138,8 @@ export default Vue.extend({
       video.srcObject = stream;
       this.localStream = stream;
     },
-    playOtherStream(src: any) {
-      src.on("stream", (stream: any) => {
-        // TODO
+    playOtherStream(src: SfuRoom) {
+      src.on("stream", (stream: RoomStream) => {
         const video = this.$refs.video as HTMLMediaElement;
         video.srcObject = stream;
         this.state = Constants.STATE_CONNECTED;
@@ -156,7 +151,7 @@ export default Vue.extend({
         this.room = this.peer.joinRoom(roomName, {
           mode: "sfu",
           stream: this.localStream
-        });
+        }) as SfuRoom;
       }
     },
     disconnect() {
@@ -170,19 +165,9 @@ export default Vue.extend({
       this.isConnecting = false;
       this.state = Constants.STATE_DISCONNECTED;
     },
-    checkPeer(peer: Peer) {
-      peer.on("error", (error: ErrorEvent) => {
-        if (error.type === "unavailable-id") {
-          alert("現在その名前は既に使われています。");
-        } else {
-          alert("エラーが発生しました。");
-        }
-        this.disconnect();
-      });
-    },
     sendComment() {
       if (!this.comment) return;
-      this.room.send(this.comment);
+      if (this.room) this.room.send(this.comment);
       const comment = {
         isMine: true,
         name: this.myName,
@@ -192,14 +177,16 @@ export default Vue.extend({
       this.comment = "";
     },
     onReceiveComment() {
-      this.room.on("data", ({ src, data }: RoomData) => {
-        const comment = {
-          isMine: false,
-          name: src,
-          content: data
-        };
-        this.comments.push(comment);
-      });
+      if (this.room) {
+        this.room.on("data", ({ src, data }: RoomData) => {
+          const comment = {
+            isMine: false,
+            name: src,
+            content: data
+          };
+          this.comments.push(comment);
+        });
+      }
     }
   },
   beforeDestroy() {
