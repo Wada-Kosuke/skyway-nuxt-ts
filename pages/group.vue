@@ -6,14 +6,14 @@
         <div class="name d-flex justify-center align-center mb-4">
           <div class="head mr-1">グループ名：</div>
           <div class="input">
-            <input v-model="groupName" :disabled="isConnecting" type="text" />
+            <input v-model="groupName" :disabled="isStarted" type="text" />
           </div>
         </div>
-        <v-btn outlined v-if="!isConnecting" @click="connect" large>開始</v-btn>
+        <v-btn outlined v-if="!isStarted" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
       </div>
       <div class="content mb-6">
-        <div v-if="isConnecting" class="videos d-flex flex-wrap">
+        <div v-if="isStarted" class="videos d-flex flex-wrap">
           <div class="video pa-2">
             <video ref="myVideo" autoplay playsinline></video>
           </div>
@@ -42,7 +42,7 @@ type Data = {
   Constants: object;
   groupName: string;
   state: number;
-  isConnecting: boolean;
+  isStarted: boolean;
   peer: Peer | null;
   room: SfuRoom | null;
   localStream: MediaStream | undefined;
@@ -55,7 +55,7 @@ export default Vue.extend({
       Constants: Constants,
       groupName: "",
       state: Constants.STATE_DISCONNECTED,
-      isConnecting: false,
+      isStarted: false,
       peer: null,
       room: null,
       localStream: undefined,
@@ -72,7 +72,7 @@ export default Vue.extend({
         });
         Utils.checkPeer(this.peer, this.disconnect);
         this.peer.on("open", async () => {
-          this.isConnecting = true;
+          this.isStarted = true;
           await this.setMyStream();
           this.joinRoom(this.groupName);
         });
@@ -123,7 +123,7 @@ export default Vue.extend({
           track.stop();
         });
       }
-      this.isConnecting = false;
+      this.isStarted = false;
       this.state = Constants.STATE_DISCONNECTED;
     }
   },
