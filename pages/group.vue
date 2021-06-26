@@ -36,6 +36,7 @@ import Vue from "vue";
 import Constants from "~/plugins/constants";
 import Utils from "~/plugins/utils";
 import Peer, { SfuRoom, RoomStream } from "skyway-js";
+import { v4 as uuidv4 } from "uuid";
 
 type Data = {
   Constants: object;
@@ -64,8 +65,8 @@ export default Vue.extend({
   methods: {
     async connect() {
       if (Utils.checkName(this.groupName, "グループ名")) {
-        const now = Date.now().toString();
-        this.peer = new Peer(now, {
+        const uuid = uuidv4();
+        this.peer = new Peer(uuid, {
           key: this.$config.SKYWAY_API_KEY,
           debug: 3
         });
