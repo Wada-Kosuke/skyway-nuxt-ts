@@ -29,14 +29,20 @@ namespace Utils {
     });
   }
 
-  // 画面下までスクロール
-  export function scrollToBottom() {
-    const element = document.documentElement;
-    const bottom = element.scrollHeight - element.clientHeight;
-    window.scrollTo({
-      top: bottom,
-      behavior: "smooth"
-    });
+  // 一番下までまでスクロール
+  export function scrollToBottom(element: HTMLElement | null = null) {
+    const bottom = document.documentElement.scrollHeight;
+    if (element) {
+      element.scrollTo({
+        top: bottom,
+        behavior: "smooth"
+      });
+    } else {
+      window.scrollTo({
+        top: bottom,
+        behavior: "smooth"
+      });
+    }
   }
 }
 
