@@ -1,31 +1,15 @@
 <template>
   <div class="wrapper">
     <div class="main">
-      <div
-        v-if="role === Constants.ROLE_UNSELECT"
-        class="select-role mt-12 d-flex flex-column justify-center"
-      >
-        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">グループを作成する</v-btn>
-        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">グループに参加する</v-btn>
-      </div>
-      <div v-else class="d-flex flex-column align-center mb-4">
+      <div class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
         <div class="name d-flex justify-center align-center mb-4">
-          <div class="head mr-1">あなたの名前：</div>
-          <div class="input">
-            <input v-model="myName" :disabled="isConnecting" type="text" />
-          </div>
-        </div>
-        <div
-          v-if="role === Constants.ROLE_ROOM_PARTICIPANT"
-          class="name d-flex justify-center align-center mb-4"
-        >
-          <div class="head mr-1">グループ作成者名：</div>
+          <div class="head mr-1">グループ名：</div>
           <div class="input">
             <input v-model="groupName" :disabled="isConnecting" type="text" />
           </div>
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" large>開始</v-btn>
+        <v-btn outlined v-if="!isConnecting" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
       </div>
       <div class="content mb-6">
@@ -55,8 +39,6 @@ import Peer, { SfuRoom, RoomStream } from "skyway-js";
 
 type Data = {
   Constants: object;
-  role: number;
-  myName: string;
   groupName: string;
   state: number;
   isConnecting: boolean;
@@ -70,8 +52,6 @@ export default Vue.extend({
   data(): Data {
     return {
       Constants: Constants,
-      role: Constants.ROLE_UNSELECT,
-      myName: "",
       groupName: "",
       state: Constants.STATE_DISCONNECTED,
       isConnecting: false,
@@ -82,25 +62,18 @@ export default Vue.extend({
     };
   },
   methods: {
-    setRole(role: number) {
-      this.role = role;
-    },
     async connect() {
-      if (Utils.checkName(this.myName, "自分の名前")) {
-        this.peer = new Peer(this.myName, {
+      if (Utils.checkName(this.groupName, "グループ名")) {
+        const now = Date.now().toString();
+        this.peer = new Peer(now, {
           key: this.$config.SKYWAY_API_KEY,
           debug: 3
         });
+        Utils.checkPeer(this.peer, this.disconnect);
         this.peer.on("open", async () => {
           this.isConnecting = true;
           await this.setMyStream();
-          if (this.role == Constants.ROLE_ROOM_CREATER) {
-            // 作成者側
-            this.joinRoom(this.myName);
-          } else if (this.role == Constants.ROLE_ROOM_PARTICIPANT) {
-            // 参加者側
-            this.joinRoom(this.groupName);
-          }
+          this.joinRoom(this.groupName);
         });
       }
     },
@@ -136,7 +109,6 @@ export default Vue.extend({
           });
         });
         this.room.on("close", () => {
-          this.localStream = undefined;
           this.streams = [];
         });
       }
@@ -145,6 +117,7 @@ export default Vue.extend({
       if (this.room) this.room.close();
       if (this.peer) this.peer.destroy();
       if (this.localStream) {
+        console.log("___");
         const tracks: MediaStreamTrack[] = this.localStream.getTracks();
         tracks.forEach((track: MediaStreamTrack) => {
           track.stop();
@@ -152,16 +125,6 @@ export default Vue.extend({
       }
       this.isConnecting = false;
       this.state = Constants.STATE_DISCONNECTED;
-    },
-    checkPeer(peer: Peer) {
-      peer.on("error", (error: ErrorEvent) => {
-        if (error.type === "unavailable-id") {
-          alert("現在その名前は既に使われています。");
-        } else {
-          alert("エラーが発生しました。");
-        }
-        this.disconnect();
-      });
     }
   },
   beforeDestroy() {
