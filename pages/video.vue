@@ -13,7 +13,7 @@
         <div class="name d-flex justify-center align-center mb-4">
           <div class="head">あなたの名前：</div>
           <div class="input">
-            <input v-model="myName" :disabled="isConnecting" type="text" />
+            <input v-model="myName" :disabled="isStarted" type="text" />
           </div>
         </div>
         <div
@@ -22,15 +22,15 @@
         >
           <div class="head">相手の名前：</div>
           <div class="input">
-            <input v-model="otherName" :disabled="isConnecting" type="text" />
+            <input v-model="otherName" :disabled="isStarted" type="text" />
           </div>
         </div>
-        <v-btn outlined v-if="!isConnecting" @click="connect" large>接続</v-btn>
+        <v-btn outlined v-if="!isStarted" @click="connect" large>接続</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
-        <div v-if="isConnecting" class="state mt-6 mb-3">{{stateText}}</div>
+        <div v-if="isStarted" class="state mt-6 mb-3">{{stateText}}</div>
       </div>
     </div>
-    <div v-if="isConnecting" class="video">
+    <div v-if="isStarted" class="video">
       <video ref="otherVideo" class="other-video" autoplay playsinline></video>
       <video ref="myVideo" class="my-video" muted autoplay playsinline></video>
     </div>
@@ -50,7 +50,7 @@ type Data = {
   otherName: string;
   state: number;
   stateText: string;
-  isConnecting: boolean;
+  isStarted: boolean;
   peer: Peer | null;
   localStream: MediaStream | undefined;
 };
@@ -64,7 +64,7 @@ export default Vue.extend({
       otherName: "",
       state: Constants.STATE_DISCONNECTED,
       stateText: "待機中…",
-      isConnecting: false,
+      isStarted: false,
       peer: null,
       localStream: undefined
     };
@@ -84,7 +84,7 @@ export default Vue.extend({
         key: this.$config.SKYWAY_API_KEY,
         debug: 3
       });
-      this.isConnecting = true;
+      this.isStarted = true;
       Utils.checkPeer(this.peer, this.disconnect);
       this.peer.on("open", async () => {
         if (this.peer) {
@@ -140,7 +140,7 @@ export default Vue.extend({
           track.stop();
         });
       }
-      this.isConnecting = false;
+      this.isStarted = false;
       this.state = Constants.STATE_DISCONNECTED;
     }
   },

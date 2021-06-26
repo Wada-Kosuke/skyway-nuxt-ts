@@ -13,7 +13,7 @@
         <div class="name d-flex justify-center align-center mb-4">
           <div class="head mr-1">あなたの名前：</div>
           <div class="input">
-            <input v-model="myName" :disabled="isConnecting" type="text" />
+            <input v-model="myName" :disabled="isStarted" type="text" />
           </div>
         </div>
         <div
@@ -22,18 +22,18 @@
         >
           <div class="head mr-1">配信者名：</div>
           <div class="input">
-            <input v-model="streamName" :disabled="isConnecting" type="text" />
+            <input v-model="streamName" :disabled="isStarted" type="text" />
           </div>
         </div>
-        <v-btn outlined v-if="!isConnecting" @click="connect" large>開始</v-btn>
+        <v-btn outlined v-if="!isStarted" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
         <div
-          v-if="role === Constants.ROLE_ROOM_PARTICIPANT && isConnecting && state === Constants.STATE_DISCONNECTED"
+          v-if="role === Constants.ROLE_ROOM_PARTICIPANT && isStarted && state === Constants.STATE_DISCONNECTED"
           class="state mt-6 mb-3"
         >接続中…</div>
       </div>
       <div class="content d-flex mb-6">
-        <div v-if="isConnecting" class="video">
+        <div v-if="isStarted" class="video">
           <video ref="video" :muted="role === Constants.ROLE_ROOM_CREATER" autoplay playsinline></video>
           <div v-if="state === Constants.STATE_CONNECTED" class="mt-2">現在の視聴者数：{{audienceNum}}人</div>
         </div>
@@ -84,7 +84,7 @@ type Data = {
   myName: string;
   streamName: string;
   state: number;
-  isConnecting: boolean;
+  isStarted: boolean;
   peer: Peer | null;
   room: SfuRoom | null;
   localStream: MediaStream | undefined;
@@ -101,7 +101,7 @@ export default Vue.extend({
       myName: "",
       streamName: "",
       state: Constants.STATE_DISCONNECTED,
-      isConnecting: false,
+      isStarted: false,
       peer: null,
       room: null,
       localStream: undefined,
@@ -122,7 +122,7 @@ export default Vue.extend({
       });
       Utils.checkPeer(this.peer, this.disconnect);
       this.peer.on("open", async () => {
-        this.isConnecting = true;
+        this.isStarted = true;
         if (this.role === Constants.ROLE_ROOM_CREATER) {
           // 配信者側
           await this.setMyStream();
@@ -181,7 +181,7 @@ export default Vue.extend({
           track.stop();
         });
       }
-      this.isConnecting = false;
+      this.isStarted = false;
       this.state = Constants.STATE_DISCONNECTED;
     },
     sendComment() {
