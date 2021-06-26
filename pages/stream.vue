@@ -1,7 +1,10 @@
 <template>
   <div class="wrapper">
     <div class="main">
-      <div v-if="role === Constants.ROLE_UNSELECT" class="mt-12 d-flex flex-column justify-center">
+      <div
+        v-if="role === Constants.ROLE_UNSELECT"
+        class="select-role mt-12 d-flex flex-column justify-center"
+      >
         <v-btn x-large @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
         <v-btn x-large @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
@@ -24,12 +27,17 @@
         </div>
         <v-btn outlined v-if="!isConnecting" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
+        <div
+          v-if="role === Constants.ROLE_ROOM_PARTICIPANT && isConnecting && state === Constants.STATE_DISCONNECTED"
+          class="state mt-6 mb-3"
+        >接続中…</div>
       </div>
-      <div v-if="isConnecting" class="content d-flex mb-6">
-        <div class="video">
-          <video ref="video" autoplay playsinline></video>
+      <div class="content d-flex mb-6">
+        <div v-if="isConnecting" class="video">
+          <video ref="video" :muted="role === Constants.ROLE_ROOM_CREATER" autoplay playsinline></video>
+          <div v-if="state === Constants.STATE_CONNECTED" class="mt-2">現在の視聴者数：{{audienceNum}}人</div>
         </div>
-        <div class="comment-area ml-4">
+        <div v-if="state === Constants.STATE_CONNECTED" class="comment-area ml-4">
           <div class="head px-5 py-3">
             コメント
             <span class="arrow">▼</span>
@@ -39,7 +47,7 @@
               class="comment py-1"
               v-for="comment in comments"
               :class="{ _mine: comment.isMine }"
-              :key="comment.content"
+              :key="comment.uuid"
             >
               <span class="name mr-2">{{ comment.name }}</span>
               <span class="content">{{ comment.content }}</span>
@@ -68,6 +76,7 @@ import Vue from "vue";
 import Constants from "~/plugins/constants";
 import Utils from "~/plugins/utils";
 import Peer, { RoomData, SfuRoom, RoomStream } from "skyway-js";
+import { v4 as uuidv4 } from "uuid";
 
 type Data = {
   Constants: object;
@@ -81,6 +90,7 @@ type Data = {
   localStream: MediaStream | undefined;
   comment: string;
   comments: object[];
+  audienceNum: number;
 };
 
 export default Vue.extend({
@@ -96,7 +106,8 @@ export default Vue.extend({
       room: null,
       localStream: undefined,
       comment: "",
-      comments: []
+      comments: [],
+      audienceNum: 0
     };
   },
   methods: {
@@ -115,6 +126,7 @@ export default Vue.extend({
         if (this.role === Constants.ROLE_ROOM_CREATER) {
           // 配信者側
           await this.setMyStream();
+          this.state = Constants.STATE_CONNECTED;
           this.joinRoom(this.myName);
           this.onReceiveComment();
         } else if (this.role === Constants.ROLE_ROOM_PARTICIPANT) {
@@ -133,12 +145,14 @@ export default Vue.extend({
       video.srcObject = stream;
       this.localStream = stream;
     },
-    playOtherStream(src: SfuRoom) {
-      src.on("stream", (stream: RoomStream) => {
+    playOtherStream(room: SfuRoom) {
+      room.on("stream", (stream: RoomStream) => {
+        if (this.role === Constants.ROLE_ROOM_PARTICIPANT)
+          this.state = Constants.STATE_CONNECTED;
         const video = this.$refs.video as HTMLMediaElement;
         video.srcObject = stream;
-        this.state = Constants.STATE_CONNECTED;
         this.onReceiveComment();
+        this.state = Constants.STATE_CONNECTED;
       });
     },
     joinRoom: function(roomName: string) {
@@ -147,6 +161,16 @@ export default Vue.extend({
           mode: "sfu",
           stream: this.localStream
         }) as SfuRoom;
+        this.updateAudienceNum(this.room);
+        this.room.on("open", () => {
+          if (this.room) this.updateAudienceNum(this.room);
+        });
+        this.room.on("peerJoin", () => {
+          if (this.room) this.updateAudienceNum(this.room);
+        });
+        this.room.on("peerLeave", () => {
+          if (this.room) this.updateAudienceNum(this.room);
+        });
       }
     },
     disconnect() {
@@ -164,6 +188,7 @@ export default Vue.extend({
       if (!this.comment) return;
       if (this.room) this.room.send(this.comment);
       const comment = {
+        uuid: uuidv4(), // :keyに使用
         isMine: true,
         name: this.myName,
         content: this.comment
@@ -175,6 +200,7 @@ export default Vue.extend({
       if (this.room) {
         this.room.on("data", ({ src, data }: RoomData) => {
           const comment = {
+            uuid: uuidv4(),
             isMine: false,
             name: src,
             content: data
@@ -182,6 +208,18 @@ export default Vue.extend({
           this.comments.push(comment);
         });
       }
+    },
+    updateAudienceNum(room: SfuRoom) {
+      const streamName =
+        this.role === Constants.ROLE_ROOM_CREATER
+          ? this.myName
+          : this.streamName;
+      let audienceNum = room.members.filter(member => {
+        return member !== streamName;
+      }).length;
+      // room.membersに自分は含まれないので視聴者の場合+1
+      if (this.role === Constants.ROLE_ROOM_PARTICIPANT) audienceNum++;
+      this.audienceNum = audienceNum;
     }
   },
   beforeDestroy() {

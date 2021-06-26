@@ -89,7 +89,7 @@ export default Vue.extend({
     },
     joinRoom(roomName: string) {
       if (this.peer) {
-        this.room = this.peer.joinRoom(roomName, {
+        this.room = this.peer.joinRoom("group_" + roomName, {
           mode: "sfu",
           stream: this.localStream
         }) as SfuRoom;
@@ -118,7 +118,6 @@ export default Vue.extend({
       if (this.room) this.room.close();
       if (this.peer) this.peer.destroy();
       if (this.localStream) {
-        console.log("___");
         const tracks: MediaStreamTrack[] = this.localStream.getTracks();
         tracks.forEach((track: MediaStreamTrack) => {
           track.stop();
