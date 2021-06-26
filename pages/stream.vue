@@ -22,7 +22,7 @@
             <input v-model="streamName" :disabled="isConnecting" type="text" />
           </div>
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" large>開始</v-btn>
+        <v-btn outlined v-if="!isConnecting" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
       </div>
       <div v-if="isConnecting" class="content d-flex mb-6">
@@ -67,12 +67,7 @@
 import Vue from "vue";
 import Constants from "~/plugins/constants";
 import Utils from "~/plugins/utils";
-import Peer, {
-  MediaConnection,
-  RoomData,
-  SfuRoom,
-  RoomStream
-} from "skyway-js";
+import Peer, { RoomData, SfuRoom, RoomStream } from "skyway-js";
 
 type Data = {
   Constants: object;
@@ -114,9 +109,9 @@ export default Vue.extend({
         key: this.$config.SKYWAY_API_KEY,
         debug: 3
       });
-      this.isConnecting = true;
       Utils.checkPeer(this.peer, this.disconnect);
       this.peer.on("open", async () => {
+        this.isConnecting = true;
         if (this.role === Constants.ROLE_ROOM_CREATER) {
           // 配信者側
           await this.setMyStream();

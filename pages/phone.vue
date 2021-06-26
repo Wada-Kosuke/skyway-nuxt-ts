@@ -22,7 +22,7 @@
             <input v-model="otherName" :disabled="isConnecting" type="text" />
           </div>
         </div>
-        <v-btn v-if="!isConnecting" @click="connect" large>接続</v-btn>
+        <v-btn outlined v-if="!isConnecting" @click="connect" large>接続</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
         <div v-if="isConnecting" class="state mt-12">{{stateText}}</div>
       </div>
@@ -90,6 +90,7 @@ export default Vue.extend({
           } else if (this.role === Constants.ROLE_RECEIVER) {
             // 着信側
             this.peer.on("call", (call: MediaConnection) => {
+              alert(`${call.remoteId}から着信がありました。`);
               call.answer(this.localStream);
               this.onStream(call);
             });
@@ -104,15 +105,19 @@ export default Vue.extend({
     },
     onStream(call: MediaConnection) {
       call.on("stream", (stream: MediaStream) => {
+        this.state = Constants.STATE_CONNECTED;
         this.playOtherStream(stream);
         if (this.role === Constants.ROLE_RECEIVER)
           this.otherName = call.remoteId;
+      });
+      call.on("close", () => {
+        alert("接続が切断されました。");
+        this.disconnect();
       });
     },
     playOtherStream(stream: MediaStream) {
       const audio = this.$refs.audio as HTMLMediaElement;
       audio.srcObject = stream;
-      this.state = Constants.STATE_CONNECTED;
     },
     disconnect() {
       if (this.peer) this.peer.destroy();
