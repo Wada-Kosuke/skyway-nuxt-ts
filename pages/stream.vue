@@ -42,7 +42,7 @@
             コメント
             <span class="arrow">▼</span>
           </div>
-          <ul class="comment-list">
+          <ul class="comment-list" ref="commentList">
             <li
               class="comment py-1"
               v-for="comment in comments"
@@ -195,6 +195,10 @@ export default Vue.extend({
       };
       this.comments.push(comment);
       this.comment = "";
+      const commentList = this.$refs.commentList as HTMLElement;
+      setTimeout(() => {
+        Utils.scrollToBottom(commentList);
+      }, 100);
     },
     onReceiveComment() {
       if (this.room) {
@@ -206,6 +210,10 @@ export default Vue.extend({
             content: data
           };
           this.comments.push(comment);
+          const commentList = this.$refs.commentList as HTMLElement;
+          setTimeout(() => {
+            Utils.scrollToBottom(commentList);
+          }, 100);
         });
       }
     },
