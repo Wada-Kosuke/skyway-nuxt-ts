@@ -1,16 +1,18 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper px-2 mx-auto">
     <div class="main">
       <div
         v-if="role === Constants.ROLE_UNSELECT"
-        class="select-role mt-12 d-flex flex-column justify-center"
+        class="select-role mx-auto mt-12 d-flex flex-column justify-center"
       >
         <v-btn x-large @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
         <v-btn x-large @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div class="name d-flex justify-center align-center mb-4">
+        <div
+          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
+        >
           <div class="head mr-1">あなたの名前：</div>
           <div class="input">
             <input v-model="myName" :disabled="isStarted" type="text" />
@@ -18,7 +20,7 @@
         </div>
         <div
           v-if="role === Constants.ROLE_ROOM_PARTICIPANT"
-          class="name d-flex justify-center align-center mb-4"
+          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
         >
           <div class="head mr-1">配信者名：</div>
           <div class="input">
@@ -32,12 +34,15 @@
           class="state mt-6 mb-3"
         >接続中…</div>
       </div>
-      <div class="content d-flex mb-6">
+      <div class="content d-flex flex-column flex-md-row mb-6">
         <div v-if="isStarted" class="video">
           <video ref="video" :muted="role === Constants.ROLE_ROOM_CREATER" autoplay playsinline></video>
           <div v-if="state === Constants.STATE_CONNECTED" class="mt-2">現在の視聴者数：{{audienceNum}}人</div>
         </div>
-        <div v-if="state === Constants.STATE_CONNECTED" class="comment-area ml-4">
+        <div
+          v-if="state === Constants.STATE_CONNECTED"
+          class="comment-area my-4 mx-auto my-md-0 ml-md-4"
+        >
           <div class="head px-5 py-3">
             コメント
             <span class="arrow">▼</span>

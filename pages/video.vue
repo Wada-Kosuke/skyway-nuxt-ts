@@ -1,16 +1,18 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper px-2 mx-auto">
     <div class="main">
       <div
         v-if="role === Constants.ROLE_UNSELECT"
-        class="select-role mt-12 d-flex flex-column justify-center"
+        class="select-role mx-auto mt-12 d-flex flex-column justify-center"
       >
         <v-btn x-large @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
         <v-btn x-large @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
       </div>
       <div v-else class="d-flex flex-column align-center">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div class="name d-flex justify-center align-center mb-4">
+        <div
+          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
+        >
           <div class="head">あなたの名前：</div>
           <div class="input">
             <input v-model="myName" :disabled="isStarted" type="text" />
@@ -18,7 +20,7 @@
         </div>
         <div
           v-if="role === Constants.ROLE_CALLER"
-          class="name d-flex justify-center align-center mb-4"
+          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
         >
           <div class="head">相手の名前：</div>
           <div class="input">
@@ -29,10 +31,10 @@
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
         <div v-if="isStarted" class="state mt-6 mb-3">{{stateText}}</div>
       </div>
-    </div>
-    <div v-if="isStarted" class="video">
-      <video ref="otherVideo" class="other-video" autoplay playsinline></video>
-      <video ref="myVideo" class="my-video" muted autoplay playsinline></video>
+      <div v-if="isStarted" class="video">
+        <video ref="otherVideo" class="other-video" autoplay playsinline></video>
+        <video ref="myVideo" class="my-video" muted autoplay playsinline></video>
+      </div>
     </div>
   </div>
 </template>
@@ -171,10 +173,13 @@ export default Vue.extend({
   margin: 0 auto 40px;
 
   > .my-video {
-    width: 200px;
+    width: 30%;
     position: absolute;
     top: 0;
     right: 0;
+    @media screen and (min-width: $md) {
+      width: 200px;
+    }
   }
 }
 </style>

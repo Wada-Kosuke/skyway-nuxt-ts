@@ -1,9 +1,11 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper px-2 mx-auto">
     <div class="main">
       <div class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div class="name d-flex justify-center align-center mb-4">
+        <div
+          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
+        >
           <div class="head mr-1">グループ名：</div>
           <div class="input">
             <input v-model="groupName" :disabled="isStarted" type="text" />
@@ -15,13 +17,13 @@
       <div class="content mb-6">
         <div v-if="isStarted" class="videos d-flex flex-wrap">
           <div class="video pa-2">
-            <video ref="myVideo" autoplay playsinline></video>
+            <video ref="myVideo" muted autoplay playsinline></video>
           </div>
           <div
             v-for="(stream, index) in streams"
             :key="stream.id"
             class="video pa-2"
-            :class="{small: streams.length >= 5}"
+            :class="{md_small: streams.length >= 5}"
           >
             <video :id="`video_${index + 1}`" autoplay playsinline></video>
           </div>
@@ -139,8 +141,14 @@ export default Vue.extend({
   > .video {
     width: 50%;
 
-    &.small {
-      width: 25%;
+    > video {
+      max-height: 40vh;
+    }
+
+    &.md_small {
+      @media screen and (min-width: $md) {
+        width: 25%;
+      }
     }
   }
 }
