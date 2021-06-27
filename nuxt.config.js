@@ -10,8 +10,8 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - skyway_usage',
-    title: 'skyway_usage',
+    titleTemplate: '%s - skyway_sample',
+    title: 'skyway_sample',
     htmlAttrs: {
       lang: 'en'
     },

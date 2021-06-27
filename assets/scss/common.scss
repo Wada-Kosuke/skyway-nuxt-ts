@@ -1,24 +1,29 @@
 // コンテンツ最大幅
 .wrapper {
   max-width: 1000px;
-  margin: 0 auto;
 }
 
 // 立場選択
 .select-role {
   width: 200px;
-  margin: 0 auto;
 }
 
 // 名前入力
 .name {
   > .head {
-    min-width: 142px;
-    text-align: right;
+    text-align: left;
+
+    @media screen and (min-width: $md) {
+      min-width: 142px;
+      text-align: right;
+    }
   }
 
   > .input {
-    min-width: 360px;
+    min-width: 300px;
+    @media screen and (min-width: $md) {
+      min-width: 360px;
+    }
 
     input[type="text"] {
       border: 1px solid gray;
@@ -41,4 +46,5 @@ input {
 
 video {
   width: 100%;
+  max-height: 80vh;
 }

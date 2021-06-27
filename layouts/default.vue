@@ -1,6 +1,6 @@
 <template>
   <v-app dark>
-    <nuxt-link to="/" class="home ml-12 mt-8">
+    <nuxt-link to="/" class="home ml-12 my-5">
       <img src="/home.png" />
     </nuxt-link>
     <nuxt />
