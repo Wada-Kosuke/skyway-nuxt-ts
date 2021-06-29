@@ -1,32 +1,23 @@
 <template>
   <div class="wrapper px-2 mx-auto">
     <div class="main">
-      <div
+      <SelectRole
         v-if="role === Constants.ROLE_UNSELECT"
-        class="select-role mx-auto mt-12 d-flex flex-column justify-center"
-      >
-        <v-btn x-large @click="setRole(Constants.ROLE_CALLER)" class="mb-6">通話をかける</v-btn>
-        <v-btn x-large @click="setRole(Constants.ROLE_RECEIVER)">通話を待つ</v-btn>
-      </div>
+        :role1="Constants.ROLE_CALLER"
+        :role2="Constants.ROLE_RECEIVER"
+        btnText1="通話をかける"
+        btnText2="通話を待つ"
+        @set-role="setRole"
+      ></SelectRole>
       <div v-else class="d-flex flex-column align-center">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div
-          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
-        >
-          <div class="head">あなたの名前：</div>
-          <div class="input">
-            <input v-model="myName" :disabled="isStarted" type="text" />
-          </div>
-        </div>
-        <div
+        <NameInput1 v-model="name1" head="あなたの名前" :isStarted="isStarted"></NameInput1>
+        <NameInput2
           v-if="role === Constants.ROLE_CALLER"
-          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
-        >
-          <div class="head">相手の名前：</div>
-          <div class="input">
-            <input v-model="otherName" :disabled="isStarted" type="text" />
-          </div>
-        </div>
+          v-model="name2"
+          head="相手の名前"
+          :isStarted="isStarted"
+        ></NameInput2>
         <v-btn outlined v-if="!isStarted" @click="connect" large>接続</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
         <div v-if="isStarted" class="state mt-12">{{stateText}}</div>
@@ -45,8 +36,8 @@ import Peer, { MediaConnection } from "skyway-js";
 type Data = {
   Constants: object;
   role: number;
-  myName: string;
-  otherName: string;
+  name1: string;
+  name2: string;
   state: number;
   stateText: string;
   isStarted: boolean;
@@ -59,8 +50,8 @@ export default Vue.extend({
     return {
       Constants: Constants,
       role: Constants.ROLE_UNSELECT,
-      myName: "",
-      otherName: "",
+      name1: "",
+      name2: "",
       state: Constants.STATE_DISCONNECTED,
       stateText: "待機中…",
       isStarted: false,
@@ -74,12 +65,12 @@ export default Vue.extend({
     },
     connect() {
       // 有効な名前かチェック
-      if (!Utils.checkName(this.myName, "自分の名前")) return;
+      if (!Utils.checkName(this.name1, "自分の名前")) return;
       if (this.role === Constants.ROLE_CALLER) {
-        if (!Utils.checkName(this.otherName, "相手の名前")) return;
+        if (!Utils.checkName(this.name2, "相手の名前")) return;
       }
       // SkyWayサーバーに接続
-      this.peer = new Peer(this.myName, {
+      this.peer = new Peer(this.name1, {
         key: this.$config.SKYWAY_API_KEY,
         debug: 3
       });
@@ -90,7 +81,7 @@ export default Vue.extend({
           await this.setMyStream();
           if (this.role === Constants.ROLE_CALLER) {
             // 発信側
-            const call = this.peer.call(this.otherName, this.localStream);
+            const call = this.peer.call(this.name2, this.localStream);
             this.onStream(call);
           } else if (this.role === Constants.ROLE_RECEIVER) {
             // 着信側
@@ -112,8 +103,7 @@ export default Vue.extend({
       call.on("stream", (stream: MediaStream) => {
         this.state = Constants.STATE_CONNECTED;
         this.playOtherStream(stream);
-        if (this.role === Constants.ROLE_RECEIVER)
-          this.otherName = call.remoteId;
+        if (this.role === Constants.ROLE_RECEIVER) this.name2 = call.remoteId;
       });
       call.on("close", () => {
         alert("接続が切断されました。");
@@ -144,7 +134,7 @@ export default Vue.extend({
         if (this.role === Constants.ROLE_CALLER) {
           this.stateText = "接続中";
         } else if (this.role === Constants.ROLE_RECEIVER) {
-          this.stateText = `${this.otherName}と接続中`;
+          this.stateText = `${this.name2}と接続中`;
         }
       }
     }

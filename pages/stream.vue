@@ -1,32 +1,23 @@
 <template>
   <div class="wrapper px-2 mx-auto">
     <div class="main">
-      <div
+      <SelectRole
         v-if="role === Constants.ROLE_UNSELECT"
-        class="select-role mx-auto mt-12 d-flex flex-column justify-center"
-      >
-        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_CREATER)" class="mb-6">配信を開始する</v-btn>
-        <v-btn x-large @click="setRole(Constants.ROLE_ROOM_PARTICIPANT)">視聴する</v-btn>
-      </div>
+        :role1="Constants.ROLE_ROOM_CREATER"
+        :role2="Constants.ROLE_ROOM_PARTICIPANT"
+        btnText1="配信を開始する"
+        btnText2="視聴する"
+        @set-role="setRole"
+      ></SelectRole>
       <div v-else class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div
-          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
-        >
-          <div class="head mr-1">あなたの名前：</div>
-          <div class="input">
-            <input v-model="myName" :disabled="isStarted" type="text" />
-          </div>
-        </div>
-        <div
+        <NameInput1 v-model="name1" head="あなたの名前" :isStarted="isStarted"></NameInput1>
+        <NameInput2
           v-if="role === Constants.ROLE_ROOM_PARTICIPANT"
-          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
-        >
-          <div class="head mr-1">配信者名：</div>
-          <div class="input">
-            <input v-model="streamName" :disabled="isStarted" type="text" />
-          </div>
-        </div>
+          v-model="name2"
+          head="配信者名"
+          :isStarted="isStarted"
+        ></NameInput2>
         <v-btn outlined v-if="!isStarted" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
         <div
@@ -86,8 +77,8 @@ import { v4 as uuidv4 } from "uuid";
 type Data = {
   Constants: object;
   role: number;
-  myName: string;
-  streamName: string;
+  name1: string;
+  name2: string;
   state: number;
   isStarted: boolean;
   peer: Peer | null;
@@ -103,8 +94,8 @@ export default Vue.extend({
     return {
       Constants: Constants,
       role: Constants.ROLE_UNSELECT,
-      myName: "",
-      streamName: "",
+      name1: "",
+      name2: "",
       state: Constants.STATE_DISCONNECTED,
       isStarted: false,
       peer: null,
@@ -120,8 +111,8 @@ export default Vue.extend({
       this.role = role;
     },
     async connect() {
-      if (!Utils.checkName(this.myName, "自分の名前")) return;
-      this.peer = new Peer(this.myName, {
+      if (!Utils.checkName(this.name1, "自分の名前")) return;
+      this.peer = new Peer(this.name1, {
         key: this.$config.SKYWAY_API_KEY,
         debug: 3
       });
@@ -132,11 +123,11 @@ export default Vue.extend({
           // 配信者側
           await this.setMyStream();
           this.state = Constants.STATE_CONNECTED;
-          this.joinRoom(this.myName);
+          this.joinRoom(this.name1);
           this.onReceiveComment();
         } else if (this.role === Constants.ROLE_ROOM_PARTICIPANT) {
           // 参加者側
-          this.joinRoom(this.streamName);
+          this.joinRoom(this.name2);
           if (this.room) this.playOtherStream(this.room);
         }
       });
@@ -195,7 +186,7 @@ export default Vue.extend({
       const comment = {
         uuid: uuidv4(), // :keyに使用
         isMine: true,
-        name: this.myName,
+        name: this.name1,
         content: this.comment
       };
       this.comments.push(comment);
@@ -223,12 +214,10 @@ export default Vue.extend({
       }
     },
     updateAudienceNum(room: SfuRoom) {
-      const streamName =
-        this.role === Constants.ROLE_ROOM_CREATER
-          ? this.myName
-          : this.streamName;
+      const name2 =
+        this.role === Constants.ROLE_ROOM_CREATER ? this.name1 : this.name2;
       let audienceNum = room.members.filter(member => {
-        return member !== streamName;
+        return member !== name2;
       }).length;
       // room.membersに自分は含まれないので視聴者の場合+1
       if (this.role === Constants.ROLE_ROOM_PARTICIPANT) audienceNum++;

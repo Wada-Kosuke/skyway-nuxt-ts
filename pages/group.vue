@@ -3,14 +3,7 @@
     <div class="main">
       <div class="d-flex flex-column align-center mb-4">
         <div class="text-sm-body-2 text--secondary mb-2">半角英数字で入力してください。</div>
-        <div
-          class="name d-flex flex-column flex-md-row justify-center align-start align-md-center mb-4"
-        >
-          <div class="head mr-1">グループ名：</div>
-          <div class="input">
-            <input v-model="groupName" :disabled="isStarted" type="text" />
-          </div>
-        </div>
+        <NameInput1 v-model="name1" head="グループ名" :isStarted="isStarted"></NameInput1>
         <v-btn outlined v-if="!isStarted" @click="connect" large>開始</v-btn>
         <v-btn v-else outlined @click="disconnect" large>切断</v-btn>
       </div>
@@ -42,7 +35,7 @@ import { v4 as uuidv4 } from "uuid";
 
 type Data = {
   Constants: object;
-  groupName: string;
+  name1: string;
   state: number;
   isStarted: boolean;
   peer: Peer | null;
@@ -55,7 +48,7 @@ export default Vue.extend({
   data(): Data {
     return {
       Constants: Constants,
-      groupName: "",
+      name1: "",
       state: Constants.STATE_DISCONNECTED,
       isStarted: false,
       peer: null,
@@ -66,7 +59,7 @@ export default Vue.extend({
   },
   methods: {
     async connect() {
-      if (Utils.checkName(this.groupName, "グループ名")) {
+      if (Utils.checkName(this.name1, "グループ名")) {
         const uuid = uuidv4();
         this.peer = new Peer(uuid, {
           key: this.$config.SKYWAY_API_KEY,
@@ -76,7 +69,7 @@ export default Vue.extend({
         this.peer.on("open", async () => {
           this.isStarted = true;
           await this.setMyStream();
-          this.joinRoom(this.groupName);
+          this.joinRoom(this.name1);
         });
       }
     },
