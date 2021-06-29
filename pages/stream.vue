@@ -25,7 +25,7 @@
           class="state mt-6 mb-3"
         >接続中…</div>
       </div>
-      <div class="content d-flex flex-column flex-md-row mb-6">
+      <div class="content d-flex flex-column flex-md-row align-md-center mb-6">
         <div v-if="isStarted" class="video">
           <video ref="video" :muted="role === Constants.ROLE_ROOM_CREATER" autoplay playsinline></video>
           <div v-if="state === Constants.STATE_CONNECTED" class="mt-2">現在の視聴者数：{{audienceNum}}人</div>
