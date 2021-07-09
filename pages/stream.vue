@@ -132,7 +132,7 @@ export default Vue.extend({
         }
       });
     },
-    setMyStream: async function() {
+    async setMyStream() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true
@@ -151,7 +151,7 @@ export default Vue.extend({
         this.state = Constants.STATE_CONNECTED;
       });
     },
-    joinRoom: function(roomName: string) {
+    joinRoom(roomName: string) {
       if (this.peer) {
         this.room = this.peer.joinRoom(roomName, {
           mode: "sfu",
