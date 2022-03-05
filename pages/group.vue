@@ -96,7 +96,6 @@ export default Vue.extend({
               `video_${this.streams.length}`
             ) as HTMLMediaElement;
             video.srcObject = stream;
-            this.localStream = stream;
           }, 500);
         });
         this.room.on("peerLeave", (peerId: string) => {
